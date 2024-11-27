@@ -37,18 +37,35 @@ board = np.zeros((BOARD_ROWS,BOARD_COLS))
 # Trạng thái trò chơi
 game_state = "menu"  # menu hoặc playing
 
+player = 1 # 1 là người chơi X hai là O
+
 # xay dung menu truoc khi bat dau
 def drawMenu():
-    """Vẽ giao diện màn hình chính."""
     screen.fill(WHITE)
     font = pygame.font.Font(None, 50)
-    title = font.render("Chào mừng đến với Cờ Caro", True, BLACK)
+
+    # Tiêu đề
+    title = font.render("Tro Choi Co Caro", True, BLACK)
     screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 150))
 
-    # Vẽ nút bắt đầu
+    title2 = font.render("Nhom 13 - AI", True, BLACK)
+    screen.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 200))
+
+    # Nút bắt đầu
     pygame.draw.rect(screen, GREY, (WIDTH // 2 - 100, 300, 200, 50))
-    play_text = font.render("Bắt đầu", True, RED)
+    play_text = font.render("Let's Start", True, RED)
     screen.blit(play_text, (WIDTH // 2 - play_text.get_width() // 2, 310))
+
+    # Nút chọn X
+    pygame.draw.rect(screen, GREY, (WIDTH // 2 - 100, 400, 90, 50))
+    x_text = font.render("X", True, RED)
+    screen.blit(x_text, (WIDTH // 2 - 100 + 45 - x_text.get_width() // 2, 410))
+
+    # Nút chọn O
+    pygame.draw.rect(screen, GREY, (WIDTH // 2 + 10, 400, 90, 50))
+    o_text = font.render("O", True, GREEN)
+    screen.blit(o_text, (WIDTH // 2 + 55 - o_text.get_width() // 2, 410))
+
 
 # ve ban co
 def drawLines(color = BLACK):
@@ -122,32 +139,71 @@ def checkWin(player):
                 return True
     return False
 
+# ALPHABET_MOVING
 
 
-player = 1 #auto x
-# Game loop
+# GAME LOOP
 running = True
+menu_active = True
+player_symbol = None
+player = None
+skip_next_click = False  # Để bỏ qua click sau khi chuyển trạng thái
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouseX = event.pos[0]  # X coordinate
-            mouseY = event.pos[1]  # Y coordinate
 
+        if menu_active and event.type == pygame.MOUSEBUTTONDOWN:
+            mouseX, mouseY = event.pos
+
+            # Nút "Let's Start"
+            if WIDTH // 2 - 100 <= mouseX <= WIDTH // 2 + 100 and 300 <= mouseY <= 350:
+                if player_symbol is not None:
+                    menu_active = False
+                    skip_next_click = True
+
+            # Nút chọn X
+            elif WIDTH // 2 - 100 <= mouseX <= WIDTH // 2 - 10 and 400 <= mouseY <= 450:
+                player_symbol = "X"
+                player = 2
+
+            # Nút chọn O
+            elif WIDTH // 2 + 10 <= mouseX <= WIDTH // 2 + 100 and 400 <= mouseY <= 450:
+                player_symbol = "O"
+                player = 1
+
+        # Xử lý khi chơi game
+        if not menu_active and event.type == pygame.MOUSEBUTTONDOWN:
+            if skip_next_click:
+                skip_next_click = False
+                continue
+
+            mouseX = event.pos[0]
+            mouseY = event.pos[1]
             clicked_row = mouseY // SQUARE_SIZE
             clicked_col = mouseX // SQUARE_SIZE
 
-            if available_square(clicked_row, clicked_col):
-                mark(clicked_row, clicked_col, player)
-                if checkWin(player):
-                    print(f"Player {player} wins!")
-                    running = False
-                player = 2 if player == 1 else 1
 
-    drawOptions()
-    drawLines()
-    drawFigures()
+            if 0 <= clicked_row < BOARD_ROWS and 0 <= clicked_col < BOARD_COLS:
+                if available_square(clicked_row, clicked_col):
+                    board[clicked_row][clicked_col] = player
+                    if checkWin(player):
+                        print(f"Player {player_symbol} wins!")
+                        running = False
+                    player = 1 if player == 2 else 2  # Chuyển lượt
+
+    if menu_active:
+        drawMenu()
+        if player_symbol:
+            font = pygame.font.Font(None, 40)
+            symbol_text = font.render(f"Ban da chon {player_symbol}!", True, BLACK)
+            screen.blit(symbol_text, (WIDTH // 2 - symbol_text.get_width() // 2, 500))
+    else:
+        screen.fill(WHITE)
+        drawLines()
+        drawFigures()
+
     pygame.display.update()
 
 pygame.quit()
