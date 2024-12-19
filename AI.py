@@ -16,6 +16,8 @@ class AI:
             (7, 7): [(3, 3), (3, 4), (4, 3), (4, 4)]  # Center and adjacent moves
         }
 
+
+    # evaluate move, danh gia nuoc di tot nhat
     def eval(self, main_board):
         start_time = time.time()
 
@@ -95,7 +97,7 @@ class AI:
                 break
         return line
 
-    # Giữ lại các phương thức hiện có từ caro 1.txt
+    # Giữ lại các phương thức hiện có từ caro
     def evaluate_board(self, board):
         score = 0
         if self.check_win(board, self.player):
@@ -240,12 +242,12 @@ class AI:
         for depth in range(1, max_depth + 1):
             if time.time() - start_time > max_time:
                 break
-            score, move = self.minimax(board, depth, -float('inf'), float('inf'), True, start_time)
+            score, move = self.alphabeta(board, depth, -float('inf'), float('inf'), True, start_time)
             if move:
                 best_move = move
         return best_move
 
-    def minimax(self, board, depth, alpha, beta, maximizing, start_time):
+    def alphabeta(self, board, depth, alpha, beta, maximizing, start_time):
         if depth == 0 or board.is_full() or time.time() - start_time > self.max_time:
             return self.evaluate_board(board), None
 
@@ -258,7 +260,7 @@ class AI:
             for (row, col) in empty_sqrs:
                 temp_board = copy.deepcopy(board)
                 temp_board.mark_sqr(row, col, self.player)
-                eval, _ = self.minimax(temp_board, depth - 1, alpha, beta, False, start_time)
+                eval, _ = self.alphabeta(temp_board, depth - 1, alpha, beta, False, start_time)
                 if eval > max_eval:
                     max_eval = eval
                     best_move = (row, col)
@@ -272,7 +274,7 @@ class AI:
             for (row, col) in empty_sqrs:
                 temp_board = copy.deepcopy(board)
                 temp_board.mark_sqr(row, col, self.opponent)
-                eval, _ = self.minimax(temp_board, depth - 1, alpha, beta, True, start_time)
+                eval, _ = self.alphabeta(temp_board, depth - 1, alpha, beta, True, start_time)
                 if eval < min_eval:
                     min_eval = eval
                     best_move = (row, col)
@@ -286,7 +288,7 @@ class AI:
         center = board.size // 2
         score += 10 - (abs(row - center) + abs(col - center))
 
-        # Prioritize moves that form or block potential threats
+        # Ưu tiên các nước đi hình thành hoặc ngăn chặn các mối đe dọa tiềm ẩn
         temp_board = copy.deepcopy(board)
         temp_board.mark_sqr(row, col, self.player)
         score += self.evaluate_potential_threats(temp_board, self.player)

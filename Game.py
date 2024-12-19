@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import messagebox
 import threading
 
-# --- Constants ---
+#  Khởi tạo các hằng số tạo kích thước, màu sắc cho chương trình
 DEFAULT_WIDTH = 700
 DEFAULT_HEIGHT = 700
 
@@ -86,7 +86,7 @@ class Game(tk.Tk):
     def is_over(self, row, col):
         result = self.board.final_state(row, col)
         if result != 0:
-            winner = "Người chơi 1" if result == 1 else "Người chơi 2"
+            winner = "Người chơi" if result == 1 else "Máy"
             messagebox.showinfo("Kết quả", f"{winner} đã thắng")
             self.running = False
             self.status_label.config(text=f"{winner} đã thắng")
